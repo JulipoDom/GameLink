@@ -69,7 +69,7 @@ export default function Home() {
   const { setTheme } = useTheme()
 
   async function handleGetUser(){
-    let usr = await GetSteamUser(steamlink)
+    const usr = await GetSteamUser(steamlink)
     if (!usr) {
       toast({
         title: "Sintax Error",
@@ -122,7 +122,8 @@ export default function Home() {
                 <Input id="steamlink"  value={steamlink} onChange={(event) => setSteamlink(event.target.value)} className="col-span-3" />
               </div>
             </div>
-            <DialogFooter>
+            <DialogFooter className="w-full flex flex-row justify-between items-center">
+              <Label className="text-xs text-left text-red-600">*see the results scrolling down the page</Label>
               <Button type="submit" onClick={() => handleGetUser()}>Link Account</Button>
             </DialogFooter>
           </DialogContent>
