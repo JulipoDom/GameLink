@@ -15,8 +15,11 @@ async function getSteamId(link:string){
         if(link.search("/id/") == -1){
             res = link.slice(36).replaceAll("/", "")
             console.log(res);
+            steamid = res
+            return
         }
-
+        console.log("fof");
+        
         const id = link.slice(30).replaceAll("/", "")
         res = await fetch(`http://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key=${key}&vanityurl=${id}`)
             .then(response => {return response.json()}).catch((e) => console.log(e))
