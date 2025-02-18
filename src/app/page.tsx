@@ -170,7 +170,7 @@ export default function Home() {
         </Card>
         <Card className="w-11/12 m-5 p-5 flex flex-col justify-center items-center">
           <Label className="text-lg">Meus jogos</Label>
-          <Card className="w-full m-5 grid grid-cols-5 gap-3 shadow-none border-0">
+          <Card className="w-full m-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 shadow-none border-0">
         {
           games ?
           games.map((game) => (
