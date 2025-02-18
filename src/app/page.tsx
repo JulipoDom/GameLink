@@ -174,7 +174,7 @@ export default function Home() {
         {
           games ?
           games.map((game) => (
-                <Card className="flex flex-col w-full justify-center items-center" key={game.appid}>
+                <Card className="flex flex-col w-full items-center" key={game.appid}>
                   <AspectRatio ratio={19/ 9} className="bg-muted">
                     <img
                       src={game.logo}
@@ -182,9 +182,9 @@ export default function Home() {
                       className="h-full w-full rounded-t-xl object-cover"
                     />
                   </AspectRatio>
-                  <div className="w-full flex flex-col justify-between items-start p-2 gap-2">
-                    <Label className="text-center text-lg underline underline-offset-2 mb-2">{game.name}</Label>
-                    <Label className="text-center">Horas: {(game.playtime / 60).toFixed(1)}</Label>
+                  <div className="flex-1 w-full flex flex-col justify-between items-start p-2 gap-2">
+                    <Label className="text-left underline underline-offset-2 mb-2">{game.name}</Label>
+                    <Label className="text-left">Horas: {(game.playtime / 60).toFixed(1)}</Label>
                   </div>
                 </Card>
           ))
