@@ -12,8 +12,8 @@ import {
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
-import { useState } from "react"
-import GetSteamUser from "./actions/steam";
+import { useEffect, useState, useTransition } from "react"
+import { getSteamUser, getGames } from "./actions/steam";
 import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -28,6 +28,8 @@ import {
 import {
   Card
 } from "@/components/ui/card"
+import Image from "next/image";
+import { AspectRatio } from "@radix-ui/react-aspect-ratio";
 
 
 export default function Home() {
@@ -60,6 +62,17 @@ export default function Home() {
     loccountrycode:           string;
   }
 
+  interface Game {
+    appid: number
+    name: string,
+    logo: string,
+    playtime: number
+  }
+
+  const [games, setGames] = useState<Game[]>([])
+
+  const [isPending, startTransition] = useTransition()
+
   const [steamlink, setSteamlink] = useState<string>("")
 
   const [steamUser, setSteamUser] = useState<SteamUser>()
@@ -68,8 +81,19 @@ export default function Home() {
   
   const { setTheme } = useTheme()
 
+  async function handleSetGames(){
+    const games:Game[] = await getGames()
+    setGames(games.sort((a, b) => b.playtime - a.playtime))
+  }
+
+  useEffect(() => {
+    if(steamUser){
+      handleSetGames()
+    }
+  }, [steamUser])
+
   async function handleGetUser(){
-    const usr = await GetSteamUser(steamlink)
+    const usr = await getSteamUser(steamlink)
     if (!usr) {
       toast({
         title: "Sintax Error",
@@ -78,31 +102,35 @@ export default function Home() {
       return
     }
     setSteamUser(usr)
+    toast({
+      title: "Sucess",
+      description: "The account has been linked!!"
+    })
   }
 
   return (
     <div>
-      <div className="h-screen w-full flex justify-center items-center">
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="icon">
-            <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-            <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-            <span className="sr-only">Toggle theme</span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => setTheme("light")}>
-            Light
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setTheme("dark")}>
-            Dark
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setTheme("system")}>
-            System
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <div className="h-screen w-full flex justify-center items-center gap-1">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="icon">
+              <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+              <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+              <span className="sr-only">Toggle theme</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => startTransition(() => setTheme("light"))}>
+              Light
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => startTransition(() => setTheme("dark"))}>
+              Dark
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => startTransition(() => setTheme("system"))}>
+              System
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
         <Dialog>
           <DialogTrigger asChild>
             <Button variant="outline">Link with Steam</Button>
@@ -119,18 +147,18 @@ export default function Home() {
                 <Label htmlFor="userlink" className="text-right">
                   User Link
                 </Label>
-                <Input id="steamlink"  value={steamlink} onChange={(event) => setSteamlink(event.target.value)} className="col-span-3" />
+                <Input id="steamlink" value={steamlink} onChange={(event) => setSteamlink(event.target.value)} className="col-span-3" />
               </div>
             </div>
             <DialogFooter className="w-full flex flex-row justify-between items-center">
               <Label className="text-xs text-left text-red-600">*see the results scrolling down the page</Label>
-              <Button type="submit" onClick={() => handleGetUser()}>Link Account</Button>
+              <Button type="submit" onClick={() => startTransition(() => handleGetUser())}>Link Account</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
-      <div className="h-screen w-full flex justify-center items-center">
-        <Card className="w-96 p-3 flex flex-col justify-around items-center gap-3">
+      <div className="w-full flex flex-col justify-center items-center">
+        <Card className="w-96 p-3 flex flex-col justify-center items-center gap-3">
           <Avatar className="h-32 w-32 border">
             <AvatarImage src={steamUser?.response.players[0].avatarfull} />
             <AvatarFallback></AvatarFallback>
@@ -140,8 +168,33 @@ export default function Home() {
           <Label htmlFor="steamlink" className="text-center">Steam Link: {steamUser?.response.players[0].profileurl ?? "nenhum"}</Label>
           <Label htmlFor="steamgame" className="text-center">Jogando agora: {steamUser?.response.players[0].gameextrainfo ?? "nada"}</Label>
         </Card>
+        <Card className="w-11/12 m-5 p-5 flex flex-col justify-center items-center">
+          <Label className="text-lg">Meus jogos</Label>
+          <Card className="w-full m-5 grid grid-cols-5 gap-3 shadow-none border-0">
+        {
+          games ?
+          games.map((game) => (
+                <Card className="flex flex-col w-full justify-center items-center" key={game.appid}>
+                  <AspectRatio ratio={19/ 9} className="bg-muted">
+                    <img
+                      src={game.logo}
+                      alt="Photo by Drew Beamer"
+                      className="h-full w-full rounded-t-xl object-cover"
+                    />
+                  </AspectRatio>
+                  <div className="w-full flex flex-col justify-between items-start p-2 gap-2">
+                    <Label className="text-center text-lg underline underline-offset-2 mb-2">{game.name}</Label>
+                    <Label className="text-center">Horas: {(game.playtime / 60).toFixed(1)}</Label>
+                  </div>
+                </Card>
+          ))
+          
+          : ""
+        }
+          </Card>
+        </Card>
       </div>
       <Toaster/>
-    </div>
+    </div>  
   );
 }
