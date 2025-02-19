@@ -12,7 +12,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
-import { useEffect, useState, useTransition } from "react"
+import { useCallback, useEffect, useState, useTransition } from "react"
 import { getSteamUser, getGames } from "./actions/steam";
 import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/hooks/use-toast";
@@ -81,16 +81,16 @@ export default function Home() {
   
   const { setTheme } = useTheme()
 
-  async function handleSetGames(){
+  const handleSetGames = useCallback(async () =>{
     const games:Game[] = await getGames()
     setGames(games.sort((a, b) => b.playtime - a.playtime))
-  }
+  }, [])
 
   useEffect(() => {
     if(steamUser){
       handleSetGames()
     }
-  }, [steamUser])
+  }, [steamUser, handleSetGames])
 
   async function handleGetUser(){
     const usr = await getSteamUser(steamlink)
@@ -170,20 +170,18 @@ export default function Home() {
         </Card>
         <Card className="w-11/12 m-5 p-5 flex flex-col justify-center items-center">
           <Label className="text-lg">Meus jogos</Label>
-<<<<<<< HEAD
           <Card className="w-full m-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 shadow-none border-0">
-=======
-          <Card className="w-full m-5 grid grid-cols-5 sm:grid-cols-1 gap-3 shadow-none border-0">
->>>>>>> f0f964ba0b0a301d3c08816c46c8f6f21eb7c82b
         {
           games ?
           games.map((game) => (
                 <Card className="flex flex-col w-full items-center" key={game.appid}>
-                  <AspectRatio ratio={19/ 9} className="bg-muted">
-                    <img
+                  <AspectRatio ratio={19/ 9} className="bg-muted rounded-xl">
+                    <Image
                       src={game.logo}
-                      alt="Photo by Drew Beamer"
-                      className="h-full w-full rounded-t-xl object-cover"
+                      width={2000}
+                      height={2000}
+                      alt="Game Logo"
+                      className="h-full w-full rounded-t-xl object-cover flex justify-center items-center"
                     />
                   </AspectRatio>
                   <div className="flex-1 w-full flex flex-col justify-between items-start p-2 gap-2">

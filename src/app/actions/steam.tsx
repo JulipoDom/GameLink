@@ -17,15 +17,17 @@ async function getSteamId(link:string){
             console.log(res);
             steamid = res
             return
+        }else {
+            console.log("fof");
+            
+            const id = link.slice(30).replaceAll("/", "")
+            res = await fetch(`http://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key=${key}&vanityurl=${id}`)
+                .then(response => {return response.json()}).catch((e) => console.log(e))
+            console.log(res.response.steamid)
+    
+            steamid = res.response.steamid
+            return
         }
-        console.log("fof");
-        
-        const id = link.slice(30).replaceAll("/", "")
-        res = await fetch(`http://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key=${key}&vanityurl=${id}`)
-            .then(response => {return response.json()}).catch((e) => console.log(e))
-        console.log(res.response.steamid)
-
-        steamid = res.response.steamid
     }catch(err){
         console.log(err);
         return
